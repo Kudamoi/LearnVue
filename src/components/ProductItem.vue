@@ -1,6 +1,6 @@
 <template>
   <a class="catalog__pic" href="#">
-    <img :alt="product.title" :src="product.image" :srcset="product.image2x">
+    <img :alt="product.title" :src="product.thumbnail">
   </a>
   <h3 class="catalog__title">
     <a href="#">
@@ -9,22 +9,12 @@
   </h3>
   <span class="catalog__price">{{ product.price }} ₽</span>
   <ul class="colors colors--black">
-    <li class="colors__item">
+    <li class="colors__item" v-for="color of product.colors" :key="product.id + color">
       <label class="colors__label">
-        <input checked="" class="colors__radio sr-only" name="color-1" type="radio" value="#73B6EA">
-        <span class="colors__value" style="background-color: #73B6EA;"></span>
-      </label>
-    </li>
-    <li class="colors__item">
-      <label class="colors__label">
-        <input class="colors__radio sr-only" name="color-1" type="radio" value="#8BE000">
-        <span class="colors__value" style="background-color: #8BE000;"></span>
-      </label>
-    </li>
-    <li class="colors__item">
-      <label class="colors__label">
-        <input class="colors__radio sr-only" name="color-1" type="radio" value="#222">
-        <span class="colors__value" style="background-color: #222;"></span>
+        <input :checked="color === product.colors[0]" class="colors__radio sr-only"
+               :name="'color-' + product.id"
+               type="radio">
+        <span class="colors__value" :style="'background-color: ' + color + ';'"></span>
       </label>
     </li>
   </ul>
