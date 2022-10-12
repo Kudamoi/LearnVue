@@ -1,13 +1,12 @@
 <template>
   <ul class="catalog__list">
-    <li v-for="product in products" :key="product.title" class="catalog__item">
+    <li v-for="product in products" :key="product.id" class="catalog__item">
       <ProductItem :product="product"></ProductItem>
     </li>
   </ul>
 </template>
 
 <script>
-// eslint-disable-next-line import/extensions
 import ProductItem from '@/components/ProductItem';
 
 export default {
