@@ -1,95 +1,44 @@
 <template>
-  <div class="content__top content__top--catalog">
-    <h1 class="content__title">
-      Каталог
-    </h1>
-    <span class="content__info">
-        {{ products.length }} товара
-      </span>
-  </div>
-  <div class="content__catalog">
-    <ProductFilter v-model:categories="categories" v-model:color="color"
-                   v-model:priceFrom.number="priceFrom" v-model:priceTo.number="priceTo"
-                   v-model:selectCategory="category" :colors="colors"
-                   :maxPrice="getProductsMaxPrice"></ProductFilter>
-    <section class="catalog">
-      <ProductList :products="getCurrentProduct"></ProductList>
-      <BasePagination v-model:page="currentPage" :countElements="getCountProduct"
-                      :countElementsOnPage="productOnPage"></BasePagination>
-    </section>
-  </div>
+  <component :is="currentPageComponent" :page-params="currentPageParams"></component>
 </template>
 
 <script>
-import colors from '@/data/colors';
-import categories from '@/data/categories';
-import products from '@/data/products';
-import ProductList from '@/components/ProductList';
-import BasePagination from '@/components/BasePagination';
-import ProductFilter from '@/components/ProductFilter';
+
+import MainPage from '@/pages/MainPage';
+import ProductPage from '@/pages/ProductPage';
+import NotFoundPage from '@/pages/NotFoundPage';
+import eventBus from '@/eventBus';
+
+const routes = {
+  main: 'MainPage',
+  product: 'ProductPage',
+};
 
 export default {
-  components: {
-    ProductList,
-    BasePagination,
-    ProductFilter,
-  },
-  name: 'App',
   data() {
     return {
-      products,
-      categories,
-      colors,
-      currentPage: 1,
-      productOnPage: 6,
-      color: 'none',
-      category: 'none',
-      priceFrom: 0,
-      priceTo: -1,
+      currentPage: 'main',
+      currentPageParams: {},
     };
   },
-  mounted() {
-    this.priceTo = this.getProductsMaxPrice;
+  methods: {
+    gotoPage(pageName, pageParams) {
+      this.currentPage = pageName;
+      this.currentPageParams = pageParams ?? {};
+    },
   },
   computed: {
-    getProductsMaxPrice() {
-      let maxPrice = 0;
-      // eslint-disable-next-line no-restricted-syntax
-      for (const product of this.products) {
-        if (maxPrice < product.price) {
-          maxPrice = product.price;
-        }
-      }
-      return maxPrice;
+    currentPageComponent() {
+      return routes[this.currentPage] ?? 'NotFoundPage';
     },
-    filteredProduct() {
-      return products.filter((product) => {
-        const checkPriceFrom = product.price >= this.priceFrom;
-        let checkColor = true;
-        let checkCategory = true;
-        let checkPriceTo = true;
-
-        if (this.priceTo !== -1) {
-          checkPriceTo = product.price <= this.priceTo;
-        }
-
-        if (this.category !== 'none') {
-          checkCategory = product.category === this.category;
-        }
-
-        if (this.color !== 'none') {
-          checkColor = product.colors.indexOf(this.color) !== -1;
-        }
-        return checkPriceFrom && checkPriceTo && checkColor && checkCategory;
-      });
-    },
-    getCurrentProduct() {
-      const startIndex = (this.currentPage - 1) * this.productOnPage;
-      return this.filteredProduct.slice(startIndex, startIndex + this.productOnPage);
-    },
-    getCountProduct() {
-      return this.filteredProduct.length;
-    },
+  },
+  components: {
+    MainPage,
+    ProductPage,
+    NotFoundPage,
+  },
+  created() {
+    eventBus.$on('gotoPage', ($event) => this.gotoPage($event.page, $event.params));
   },
 };
 </script>
