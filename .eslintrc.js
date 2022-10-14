@@ -30,5 +30,6 @@ module.exports = {
         vue: 'never',
       },
     ],
+    'linebreak-style': ['off', 'unix'],
   },
 };

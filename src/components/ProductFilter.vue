@@ -126,6 +126,20 @@ export default {
       currentColor: this.color,
     };
   },
+  watch: {
+    priceFrom(value) {
+      this.currentPriceFrom = value;
+    },
+    priceTo(value) {
+      this.currentPriceTo = value;
+    },
+    color(value) {
+      this.currentColor = value;
+    },
+    selectCategory(value) {
+      this.currentCategory = value;
+    },
+  },
   methods: {
     filterProducts() {
       this.$emit('update:selectCategory', this.currentCategory);
