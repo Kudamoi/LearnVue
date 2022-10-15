@@ -31,7 +31,6 @@ import ProductFilter from '@/components/ProductFilter';
 export default {
   name: 'MainPage',
   props: ['pageParams'],
-  emits: ['gotoPage'],
   components: {
     ProductList,
     BasePagination,
