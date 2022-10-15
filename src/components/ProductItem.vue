@@ -1,11 +1,11 @@
 <template>
-  <a class="catalog__pic" href="#" @click.prevent="gotoPage('product', {id: product.id})">
+  <router-link class="catalog__pic" :to="{name: 'product', params: {id: product.id}}">
     <img :alt="product.title" :src="product.thumbnail">
-  </a>
+  </router-link>
   <h3 class="catalog__title">
-    <a href="#" @click.prevent="gotoPage('product', {id: product.id})">
+    <router-link :to="{name: 'product', params: {id: product.id}}">
       {{ product.title }}
-    </a>
+    </router-link>
   </h3>
   <span class="catalog__price">{{ numberFormat(product.price, 2, '.', ' ') }} ₽</span>
   <ul class="colors colors--black">
@@ -21,16 +21,13 @@
 </template>
 
 <script>
-import gotoPage from '@/helpers/gotoPage';
 import numberFormat from '@/helpers/numberFormat';
 
 export default {
   props: ['product'],
   name: 'ProductItem',
   methods: {
-    gotoPage,
     numberFormat,
   },
-  emits: ['gotoPage'],
 };
 </script>

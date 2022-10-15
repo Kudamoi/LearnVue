@@ -13,7 +13,6 @@ export default {
   components: {
     ProductItem,
   },
-  emits: ['gotoPage'],
   props: ['products'],
   name: 'ProductList',
 };

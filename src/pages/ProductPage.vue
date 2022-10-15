@@ -2,14 +2,14 @@
   <div class="content__top">
     <ul class="breadcrumbs">
       <li class="breadcrumbs__item">
-        <a class="breadcrumbs__link" href="#" @click.prevent="gotoPage('main')">
+        <router-link :to="{name: 'main'}" class="breadcrumbs__link">
           Каталог
-        </a>
+        </router-link>
       </li>
       <li class="breadcrumbs__item">
-        <a class="breadcrumbs__link" href="#" @click.prevent="gotoPage('main')">
+        <router-link :to="{name: 'main'}" class="breadcrumbs__link">
           {{ product.category }}
-        </a>
+        </router-link>
       </li>
       <li class="breadcrumbs__item">
         <a class="breadcrumbs__link">
@@ -39,9 +39,9 @@
         {{ product.title }}
       </h2>
       <div class="item__form">
-        <form action="#" class="form" method="POST">
+        <form action="#" class="form" method="POST" @submit.prevent="addToCart">
           <b class="item__price">
-            {{ numberFormat(product.price, 2,'.',' ') }} ₽
+            {{ numberFormat(product.price, 2, '.', ' ') }} ₽
           </b>
 
           <fieldset class="form__block">
@@ -91,15 +91,15 @@
 
           <div class="item__row">
             <div class="form__counter">
-              <button aria-label="Убрать один товар" type="button">
+              <button aria-label="Убрать один товар" type="button" @click.prevent="minusAmount">
                 <svg fill="currentColor" height="12" width="12">
                   <use xlink:href="#icon-minus"></use>
                 </svg>
               </button>
 
-              <label><input name="count" type="text" value="1"></label>
+              <label><input v-model.number="productAmount" name="count" type="text"></label>
 
-              <button aria-label="Добавить один товар" type="button">
+              <button aria-label="Добавить один товар" type="button" @click.prevent="plusAmount">
                 <svg fill="currentColor" height="12" width="12">
                   <use xlink:href="#icon-plus"></use>
                 </svg>
@@ -147,21 +147,34 @@
 
 <script>
 import products from '@/data/products';
-import gotoPage from '@/helpers/gotoPage';
 import numberFormat from '@/helpers/numberFormat';
 
 export default {
   name: 'ProductPage',
   props: ['pageParams'],
-  emits: ['gotoPage'],
   data() {
     return {
-      product: products.filter((product) => product.id === this.pageParams.id)[0],
+      product: products.filter((product) => product.id === +this.$route.params.id)[0],
+      productAmount: 1,
     };
   },
   methods: {
-    gotoPage,
     numberFormat,
+    addToCart() {
+      this.$store.commit(
+        'addProductToCart',
+        {
+          productId: this.product.id,
+          amount: this.productAmount,
+        },
+      );
+    },
+    plusAmount() {
+      this.productAmount += 1;
+    },
+    minusAmount() {
+      this.productAmount -= 1;
+    },
   },
 };
 </script>
