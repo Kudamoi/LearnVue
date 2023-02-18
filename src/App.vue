@@ -180,5 +180,8 @@ export default {
   components: {
     CartIndicator,
   },
+  mounted() {
+    this.$store.dispatch('getCartKey');
+  },
 };
 </script>

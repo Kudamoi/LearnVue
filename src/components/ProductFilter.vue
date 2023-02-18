@@ -2,16 +2,18 @@
   <aside class="filter">
     <h2 class="filter__title">Фильтры</h2>
 
-    <form action="#" class="filter__form form" method="get" @submit.prevent="filterProducts"
+    <form class="filter__form form"
+          method="get"
+          @submit.prevent="filterProducts"
           @reset.prevent="filterReset">
       <fieldset class="form__block">
         <legend class="form__legend">Цена</legend>
         <label class="form__label form__label--price">
-          <input v-model="currentPriceFrom" class="form__input" name="min-price" type="text">
+          <input placeholder="12 054" v-model="price.from" class="form__input" name="min-price" type="text">
           <span class="form__value">От</span>
         </label>
         <label class="form__label form__label--price">
-          <input v-model="currentPriceTo" class="form__input" name="max-price" type="text">
+          <input placeholder="20 125" v-model="price.to" class="form__input" name="max-price" type="text">
           <span class="form__value">До</span>
         </label>
       </fieldset>
@@ -19,10 +21,10 @@
       <fieldset class="form__block">
         <legend class="form__legend">Категория</legend>
         <label class="form__label form__label--select">
-          <select v-model="currentCategory" class="form__select" name="category">
-            <option value="none" :key="'none'">Все категории</option>
-            <option v-for="category of categories" :key="category" :value="category">
-              {{ category }}
+          <select v-model="current.category" class="form__select" name="category">
+            <option value="null" :key="null">Все категории</option>
+            <option v-for="category of categories" :key="category" :value="category.slug">
+              {{ category.title }}
             </option>
           </select>
         </label>
@@ -33,77 +35,14 @@
         <ul class="colors">
           <li class="colors__item" v-for="color of colors" :key="color">
             <label class="colors__label">
-              <input v-model="this.currentColor" class="colors__radio sr-only"
-                     name="color" type="radio"
-                     :value="color">
-              <span class="colors__value" :style="'background-color: ' + color + ';'">
-                  </span>
-            </label>
-          </li>
-
-        </ul>
-      </fieldset>
-
-      <fieldset class="form__block">
-        <legend class="form__legend">Объемб в ГБ</legend>
-        <ul class="check-list">
-          <li class="check-list__item">
-            <label class="check-list__label">
-              <input checked="" class="check-list__check sr-only" name="volume" type="checkbox" value="8">
-              <span class="check-list__desc">
-                    8
-                    <span>(313)</span>
-                  </span>
-            </label>
-          </li>
-          <li class="check-list__item">
-            <label class="check-list__label">
-              <input class="check-list__check sr-only" name="volume" type="checkbox" value="16">
-              <span class="check-list__desc">
-                    16
-                    <span>(461)</span>
-                  </span>
-            </label>
-          </li>
-          <li class="check-list__item">
-            <label class="check-list__label">
-              <input class="check-list__check sr-only" name="volume" type="checkbox" value="32">
-              <span class="check-list__desc">
-                    32
-                    <span>(313)</span>
-                  </span>
-            </label>
-          </li>
-          <li class="check-list__item">
-            <label class="check-list__label">
-              <input class="check-list__check sr-only" name="volume" type="checkbox" value="64">
-              <span class="check-list__desc">
-                    64
-                    <span>(313)</span>
-                  </span>
-            </label>
-          </li>
-          <li class="check-list__item">
-            <label class="check-list__label">
-              <input class="check-list__check sr-only" name="volume" type="checkbox" value="128">
-              <span class="check-list__desc">
-                    128
-                    <span>(313)</span>
-                  </span>
-            </label>
-          </li>
-          <li class="check-list__item">
-            <label class="check-list__label">
-              <input class="check-list__check sr-only" name="volume" type="checkbox" value="264">
-              <span class="check-list__desc">
-                    264
-                    <span>(313)</span>
+              <input v-model="current.color" class="colors__radio sr-only"
+                     name="color" type="radio" :value="color.id">
+              <span class="colors__value" :style="'background-color: ' + color.code + ';'">
                   </span>
             </label>
           </li>
         </ul>
       </fieldset>
-
       <button class="filter__submit button button--primery" type="submit">
         Применить
       </button>
@@ -116,42 +55,57 @@
 
 <script>
 export default {
-  props: ['categories', 'selectCategory', 'priceFrom', 'priceTo', 'maxPrice', 'colors', 'color'],
+  props: [
+    'categories',
+    'colors',
+    'currentFilter',
+  ],
   name: 'ProductFilter',
   data() {
     return {
-      currentCategory: this.selectCategory,
-      currentPriceFrom: this.priceFrom,
-      currentPriceTo: this.priceTo === -1 ? this.maxPrice : this.priceTo,
-      currentColor: this.color,
+      price: {
+        from: this.currentFilter.priceFrom,
+        to: this.currentFilter.priceTo,
+      },
+      current: {
+        category: this.currentFilter.category,
+        color: this.currentFilter.color,
+      },
     };
-  },
-  watch: {
-    priceFrom(value) {
-      this.currentPriceFrom = value;
-    },
-    priceTo(value) {
-      this.currentPriceTo = value;
-    },
-    color(value) {
-      this.currentColor = value;
-    },
-    selectCategory(value) {
-      this.currentCategory = value;
-    },
   },
   methods: {
     filterProducts() {
-      this.$emit('update:selectCategory', this.currentCategory);
-      this.$emit('update:priceFrom', this.currentPriceFrom);
-      this.$emit('update:priceTo', this.currentPriceTo);
-      this.$emit('update:color', this.currentColor);
+      this.$emit('changeFilter', {
+        priceFrom: this.price.from,
+        priceTo: this.price.to,
+        category: this.current.category,
+        color: this.current.color,
+      });
     },
     filterReset() {
-      this.$emit('update:selectCategory', 'none');
-      this.$emit('update:priceFrom', 0);
-      this.$emit('update:priceTo', this.maxPrice);
-      this.$emit('update:color', 'none');
+      this.$emit('changeFilter', {
+        priceFrom: null,
+        priceTo: null,
+        category: null,
+        color: null,
+      });
+    },
+  },
+  watch: {
+    currentFilter: {
+      handler() {
+        this.price = {
+          from: this.currentFilter.priceFrom,
+          to: this.currentFilter.priceTo,
+        };
+
+        this.current = {
+          category: this.currentFilter.category,
+          color: this.currentFilter.color,
+        };
+      },
+      immediate: true,
+      deep: true,
     },
   },
 };

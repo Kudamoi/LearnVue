@@ -17,15 +17,15 @@
       Корзина
     </h1>
     <span class="content__info">
-        {{ countProducts }} товара
-      </span>
+      {{ declination(countProducts, ['товар', 'товара', 'товаров']) }}
+    </span>
   </div>
 
   <section class="cart">
     <form action="#" class="cart__form form" method="POST" @submit.prevent="">
       <div class="cart__field">
         <ul class="cart__list">
-          <li v-for="product in products" :key="product.productId" class="cart__item product">
+          <li v-for="product in products" :key="product.id" class="cart__item product">
             <CartProduct :product="product"></CartProduct>
           </li>
         </ul>
@@ -51,6 +51,7 @@
 import { mapGetters } from 'vuex';
 import numberFormat from '@/helpers/numberFormat';
 import CartProduct from '@/components/CartProduct';
+import declination from '@/helpers/declination';
 
 export default {
   name: 'CartPage',
@@ -58,6 +59,7 @@ export default {
     CartProduct,
   },
   methods: {
+    declination,
     numberFormat,
   },
   computed: {

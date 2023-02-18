@@ -1,96 +1,146 @@
 <template>
-  <div class="content__top content__top--catalog">
-    <h1 class="content__title">
-      Каталог
-    </h1>
-    <span class="content__info">
-        {{ products.length }} товара
+  <LoaderIndicator v-if="loading"></LoaderIndicator>
+  <template v-else>
+    <div class="content__top content__top--catalog">
+      <h1 class="content__title">
+        Каталог
+      </h1>
+      <span class="content__info">
+      {{ declination(currentParams.pagination.total, ['товар', 'товара', 'товаров']) }}
       </span>
-  </div>
-  <div class="content__catalog">
-    <ProductFilter v-model:categories="categories" v-model:color="color"
-                   v-model:priceFrom.number="priceFrom" v-model:priceTo.number="priceTo"
-                   v-model:selectCategory="category" :colors="colors"
-                   :maxPrice="getProductsMaxPrice"></ProductFilter>
-    <section class="catalog">
-      <ProductList :products="getCurrentProduct"></ProductList>
-      <BasePagination v-model:page="currentPage" :countElements="getCountProduct"
-                      :countElementsOnPage="productOnPage"></BasePagination>
-    </section>
-  </div>
+    </div>
+    <div class="content__catalog">
+      <ProductFilter
+          :colors="colors"
+          :categories="categories"
+          :currentFilter="currentParams.filter"
+          @changeFilter="changeFilter($event)"
+      ></ProductFilter>
+      <section class="catalog">
+        <ProductList
+            :products="products"
+        ></ProductList>
+        <BasePagination
+            v-model:page="currentParams.pagination.current"
+            :count-pages="currentParams.pagination.pages"
+            :elementsOnPage="currentParams.pagination.countOnPage"
+        ></BasePagination>
+      </section>
+    </div>
+  </template>
 </template>
 
 <script>
-import colors from '@/data/colors';
-import categories from '@/data/categories';
-import products from '@/data/products';
 import ProductList from '@/components/ProductList';
 import BasePagination from '@/components/BasePagination';
 import ProductFilter from '@/components/ProductFilter';
+import declination from '@/helpers/declination';
+import { DOMAIN } from '@/config';
+import LoaderIndicator from '@/components/LoaderIndicator';
 
 export default {
   name: 'MainPage',
-  props: ['pageParams'],
   components: {
     ProductList,
     BasePagination,
     ProductFilter,
+    LoaderIndicator,
   },
   data() {
     return {
-      products,
-      categories,
-      colors,
-      currentPage: 1,
-      productOnPage: 6,
-      color: 'none',
-      category: 'none',
-      priceFrom: 0,
-      priceTo: -1,
+      loading: true,
+      currentParams: {
+        pagination: {
+          current: 1,
+          countOnPage: 6,
+          total: 0,
+          pages: 0,
+        },
+        filter: {
+          color: null,
+          category: this.$route.query.category ?? null,
+          priceFrom: null,
+          priceTo: null,
+        },
+      },
+      timer: null,
+      colors: [],
+      categories: [],
+      products: [],
     };
   },
-  mounted() {
-    this.priceTo = this.getProductsMaxPrice;
-  },
-  computed: {
-    getProductsMaxPrice() {
-      let maxPrice = 0;
-      // eslint-disable-next-line no-restricted-syntax
-      for (const product of this.products) {
-        if (maxPrice < product.price) {
-          maxPrice = product.price;
-        }
+  methods: {
+    declination,
+    getCurrentProducts() {
+      this.loading = true;
+      let params = `?limit=${this.currentParams.pagination.countOnPage}&page=${this.currentParams.pagination.current}`;
+
+      if (this.currentParams.filter.category) {
+        params += `&categoryId=${this.currentParams.filter.category}`;
       }
-      return maxPrice;
-    },
-    filteredProduct() {
-      return products.filter((product) => {
-        const checkPriceFrom = product.price >= this.priceFrom;
-        let checkColor = true;
-        let checkCategory = true;
-        let checkPriceTo = true;
 
-        if (this.priceTo !== -1) {
-          checkPriceTo = product.price <= this.priceTo;
-        }
+      if (this.currentParams.filter.color) {
+        params += `&colorId=${this.currentParams.filter.color}`;
+      }
 
-        if (this.category !== 'none') {
-          checkCategory = product.category === this.category;
-        }
+      if (this.currentParams.filter.priceFrom) {
+        params += `&minPrice=${this.currentParams.filter.priceFrom}`;
+      }
 
-        if (this.color !== 'none') {
-          checkColor = product.colors.indexOf(this.color) !== -1;
-        }
-        return checkPriceFrom && checkPriceTo && checkColor && checkCategory;
+      if (this.currentParams.filter.priceTo) {
+        params += `&maxPrice=${this.currentParams.filter.priceTo}`;
+      }
+
+      fetch(`${DOMAIN}/api/products${params}`, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }).then(async (response) => {
+        const items = await response.json();
+        this.currentParams.pagination.pages = items.pagination.pages;
+        this.currentParams.pagination.total = items.pagination.total;
+        this.products = items.items;
+        this.loading = false;
       });
     },
-    getCurrentProduct() {
-      const startIndex = (this.currentPage - 1) * this.productOnPage;
-      return this.filteredProduct.slice(startIndex, startIndex + this.productOnPage);
+    changeFilter(filter) {
+      this.currentParams.filter = filter;
+      this.currentParams.pagination.current = 1;
     },
-    getCountProduct() {
-      return this.filteredProduct.length;
+    getCurrentFilters() {
+      fetch(`${DOMAIN}/api/colors`, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }).then(async (response) => {
+        const colors = await response.json();
+        this.colors = colors.items;
+      });
+
+      fetch(`${DOMAIN}/api/productCategories`, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }).then(async (response) => {
+        const categories = await response.json();
+        this.categories = categories.items;
+      });
     },
+  },
+  watch: {
+    currentParams: {
+      handler() {
+        clearTimeout(this.timer);
+        this.timer = setTimeout(() => {
+          this.getCurrentProducts();
+        }, 100);
+      },
+      deep: true,
+      immediate: true,
+    },
+  },
+  mounted() {
+    this.getCurrentFilters();
   },
 };
 </script>

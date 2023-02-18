@@ -1,5 +1,5 @@
 <template>
-  <ul class="catalog__pagination pagination">
+  <ul class="catalog__pagination pagination" v-if="countPages > 1">
     <li class="pagination__item">
       <a :class="page <= 1 ? 'pagination__link--disabled' : ''" aria-label="Предыдущая страница"
          class="pagination__link pagination__link--arrow" href="#"
@@ -31,13 +31,8 @@
 
 <script>
 export default {
-  props: ['page', 'countElements', 'countElementsOnPage'],
+  props: ['page', 'countPages', 'elementsOnPage'],
   name: 'BasePagination',
-  computed: {
-    countPages() {
-      return Math.ceil(this.countElements / this.countElementsOnPage);
-    },
-  },
   methods: {
     prevPage() {
       if (this.page > 1) {
